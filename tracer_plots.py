@@ -6,16 +6,12 @@ Created on Thu Jun 27 09:26:06 2024
 @author: catcoll
 
 plot and save all tracer days around houston
+plot time of measurement
 
 """
 
 
-# read in files as indexable list
-with open("/Users/catcoll/Documents/py/isotopes/tracer_filescopy.txt") as f:
-    files = [line.rstrip('\n') for line in f]
-# with open("/Users/catcoll/Documents/py/isotopes/tracer_files_juntosept_22.txt") as f:
-#     files2 = [line.rstrip('\n') for line in f]
-files[0]
+
 import numpy as np
 import xarray as xr
 import pandas as pd
@@ -29,6 +25,15 @@ np.set_printoptions(threshold=10, edgeitems=2)
 %xmode minimal
 %matplotlib inline
 %config InlineBackend.figure_format='retina'
+
+
+# read in files as indexable list
+with open("/Users/catcoll/Documents/py/isotopes/tracer_filescopy.txt") as f:
+    files = [line.rstrip('\n') for line in f]
+# with open("/Users/catcoll/Documents/py/isotopes/tracer_files_juntosept_22.txt") as f:
+#     files2 = [line.rstrip('\n') for line in f]
+files[0]
+
 
 #%% create function that opens netcdf4 file, plots houston region, and saves file to folder 
 
@@ -69,52 +74,10 @@ def tracer(files):
     
     return fig
 
-#%%
+#%% run fxn
 
 plots=tracer(files)
 
-
-#%% practice outside fxn
-
-
-with open("/Users/catcoll/Documents/py/isotopes/test.txt") as f:
-    test = [line.rstrip('\n') for line in f]
-
-for i, x in enumerate(test):
-    date=x[38:48]
-    date=date.replace('/', "-")
-    obj=xr.open_dataset(x, group="target_product")
-    coords=xr.open_dataset(x, group="instrument")
-    coords
-    time=coords["time"].values
-    #extract data
-    deltad=obj['deltad'].values
-    lon=coords['longitude_center'].values
-    lat=coords['latitude_center'].values
-    houston=(265,29)
-    print(i)
-    print(x)
-
-    fig, ax=plt.subplots(
-        figsize=(10,5), subplot_kw={"projection":ccrs.PlateCarree()})
-    ax.coastlines()
-    
-    ax.set_extent([260,274,27,33])
-    
-    img=ax.scatter(lon,lat,c=deltad,cmap="plasma", transform=ccrs.PlateCarree(), vmin=-0.3, vmax=-0.0)
-    ax.set_title("delta values for "+date+"_"+str(i), y=1.2)
-    ax.gridlines(crs=ccrs.PlateCarree(), linewidth=2, color='black', 
-        draw_labels=True, alpha=.04, linestyle='--')
-    plt.colorbar(img,ax=ax)
-    ax.scatter(houston[0],houston[1],color='yellow', marker='o', edgecolors="black")
-    
-    fig.savefig("/Users/catcoll/Documents/py/isotopes/h_tracer_plots"+"/"+"delta values for"+date+"_"+str(i)+'.png')
-    
-    
-date=x[38:48]
-date=date.replace('/', "-")
-date    
-    
 #%% plot time
 hr_min=time[:,3:6]
 #hr, min, sec

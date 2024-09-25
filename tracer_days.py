@@ -5,7 +5,7 @@ Created on Wed Jun 26 08:34:15 2024
 
 @author: catcoll
 
-Loop through days of tracer
+Loop through tracer days (or specified date range) and collect file names
 
 """
 
@@ -17,6 +17,12 @@ import matplotlib.pyplot as plt
 import os
 
 def get_tracer_days(start_dir, months):
+    ''''
+    Input: starting directory (year), file path
+        months: months of interest, str
+        
+    output: list of file paths
+    '''
     
     file_list=[]
     
@@ -55,6 +61,8 @@ def get_tracer_days(start_dir, months):
     return file_list
 
 #%%
+
+#time frame of interest in 2021
 days_in_2021 = "/Volumes/waterisotopes/HDO_trim_CLEAR/2021"
 months_2021 = ["10", "11", "12"]
 
@@ -63,7 +71,7 @@ houston_2021 = get_tracer_days(days_in_2021, months_2021)
 houston_2021
 len(houston_2021)
 
-
+#time frame of interest in 2022
 days_in_2022 = "/Volumes/waterisotopes/HDO_trim_CLEAR/2022"
 months_2022 = ["01","02","03","04","05","06","07","08","09"]
 
@@ -80,20 +88,3 @@ with open(r'/Users/catcoll/Documents/py/isotopes/tracer_files', 'w') as fp:
     for i in houston_2022:
         fp.write("%s\n" % i)
 
-
-
-#%%extras
-                #     coords=xr.open_dataset(file_path, group="instrument")
-                #     lon=coords['longitude_center'].values
-                # #lat=coords['latitude_center'].values
-                    
-                #     for lon_value in lon:
-                #         if -100 <= lon <= -50:
-                #             file_list.append(day_dir_path)
-                #             break
-                
-
-                # if len(day_files) >= 14:
-                #     filepath = os.path.join(day_dir_path, day_files[-4])
-                #     file_list.append(filepath)
-            

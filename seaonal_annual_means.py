@@ -4,7 +4,7 @@ Cat Collins
 06/20/24
 
 Summary:
-Import NETCDF files with xarray, extract delta d data, constrain to guld region,
+Import NETCDF files with xarray, extract delta d data, constrain to gulf region,
 plot on world map using cartopy
 """
 import numpy as np
@@ -133,7 +133,7 @@ ax.set_title("Annual Average of Mass Weighted Delta d Ratio (1deg)", y=3.3)
 pa = gulf_a_dw.plot.pcolormesh(
     col="year", col_wrap=3,
     transform=ccrs.PlateCarree(), cmap='Spectral',
-    norm = mpl.colors.Normalize(vmin=-.3, vmax=-0.05),
+    norm = mpl.colors.Normalize(vmin=-.25, vmax=-0.1),
     subplot_kws={'projection': ccrs.Orthographic(-80,45)}
     )
 for ax in pa.axs.flat:
@@ -194,109 +194,6 @@ ax.set_title("Seasonal Average of Mass Weighted Delta d Ratio (5km)", y=1.2)
 
 
 
-#%% # get obvs per year (not finished)
-
-years=[np.datetime_as_string(date,unit='Y').astype(int) for date in t]
-
-n=gulf.nobs.data
-nobvs_y=np.stack((years,n))
-nobvs_y[1,1]
-
-
-year_2017=0
-year_2018=0
-year_2019=0
-year_2020=0
-year_2021=0
-year_2022=0
-
-# NOT FINISHED
-
-for i in range(len(nobvs_y[0])):
-   # year = nobvs_m[0,10]
-    value = nobvs_m[1,i]
-    
-    if nobvs_y[0,i]== 1 or nobvs_m[0,i]== 2 or nobvs_m[0,i]== 12:
-        winter += value
-        
-    if nobvs_m[0,i]== 3 or nobvs_m[0,i]== 4 or nobvs_m[0,i]== 5:
-        spring += value
-        
-    if nobvs_m[0,i]== 6 or nobvs_m[0,i]== 7 or nobvs_m[0,i]== 8:
-       summer += value
-        
-    if nobvs_m[0,i]== 9 or nobvs_m[0,i]== 10 or nobvs_m[0,i]== 11:
-       fall += value
-print(f"Winter: {winter}")
-print(f"Spring: {spring}")
-print(f"Summer: {summer}")
-print(f"Fall: {fall}")
-
-winter
-#%% # get obs for each season
-from datetime import date
-t=gulf.time.data
-type(t)
-t.datetime64
-
-months = np.array([np.datetime64(date, 'M').astype('int').item() % 12 + 1 for date in t])
-
-months
-n=gulf.nobs.data
-nobvs_m=np.stack((months,n))
-nobvs_m[1][0]
-
-
-winter=0
-summer=0
-spring=0
-fall=0
-for i in range(len(nobvs_m[0])):
- #   month = nobvs_m[0,i]
-    value = nobvs_m[1,i]
-    
-    if nobvs_m[0,i]== 1 or nobvs_m[0,i]== 2 or nobvs_m[0,i]== 12:
-        winter += value
-        
-    if nobvs_m[0,i]== 3 or nobvs_m[0,i]== 4 or nobvs_m[0,i]== 5:
-        spring += value
-        
-    if nobvs_m[0,i]== 6 or nobvs_m[0,i]== 7 or nobvs_m[0,i]== 8:
-       summer += value
-        
-    if nobvs_m[0,i]== 9 or nobvs_m[0,i]== 10 or nobvs_m[0,i]== 11:
-       fall += value
-print(f"Winter: {winter}")
-print(f"Spring: {spring}")
-print(f"Summer: {summer}")
-print(f"Fall: {fall}")
-
-winter
-#%% fancy plotting with advanced labelling stuff
-
-import cartopy.crs as ccrs
-import matplotlib as mpl
-
-
-
-
-fig, axs = plt.subplots(2, 2, subplot_kw={'projection': ccrs.Orthographic(-80, 45)})
-axs = axs.flatten()
-
-seasons = ["DJF", "MAM", "JJA", "SON"]
-observations = [winter, spring, summer, fall]
-
-for i, (season, num_observations) in enumerate(zip(seasons, observations)):
-    ax = axs[i]
-    gulf_s_dw.sel(season=season).plot.pcolormesh(
-        transform=ccrs.PlateCarree(),
-        cmap='Spectral',
-        norm=mpl.colors.Normalize(vmin=-0.3, vmax=-0.05),
-        ax=ax
-    )
-    ax.coastlines()
-    ax.gridlines()
-    ax.set_title(f"{season}\nN Obs: {num_observations}")
 #%% other plotting wit number of observations included
 
 
@@ -321,44 +218,37 @@ for ax, n_obs in zip(pa.axes.flat, nobs):
             ha='right', va='top', fontsize=10, color='black',
             bbox=dict(facecolor='white', alpha=0.8, edgecolor='gray', boxstyle='round,pad=0.5'))
  
-    
-    
-# with count variable
-# turns out werid because each input is an array of values
 
-count=ds['count']
-count=count.data
-count
-#count.values
-pa = dw.plot.pcolormesh(
-    col="time", col_wrap=4,
+#%% plotting 25km data (monthly averages)
+
+ds25=xr.open_dataset("/Volumes/waterisotopes/TROPOMI_HDO_CLEAR_p25.nc")
+
+dw25=ds25.deltad_weighted
+
+ds25
+
+
+# index for lat lon of the gulf coast region
+
+# "nearest indexing at multiple points"
+gulf25=dw25.sel(lat=slice(21,34), lon=slice(260,280))
+gulf_23_dw25=gulf25.sel(time='2023')
+
+gulf_23_dw25_s=gulf_23_dw25.groupby("time.season").mean()
+gulf_23_dw25_s=gulf_23_dw25_s.sel(season=["DJF","MAM","JJA","SON"])
+gulf_23_dw25_s
+
+#plot
+ps25 = gulf_23_dw25_s.plot.pcolormesh(
+    col="season", 
     transform=ccrs.PlateCarree(), cmap='Spectral',
     norm = mpl.colors.Normalize(vmin=-.3, vmax=-0.05),
     subplot_kws={'projection': ccrs.Orthographic(-80,45)}
     )
-for ax, ct in zip(pa.axes.flat, count):
+for ax in ps25.axs.flat:
     ax.coastlines()
     ax.gridlines()
-    ax.set_extent([260,279,27,34])
-    ax.text(0.95, 0.95, f"N Obs: {ct}", transform=ax.transAxes,
-            ha='right', va='top', fontsize=10, color='black',
-            bbox=dict(facecolor='white', alpha=0.8, edgecolor='gray', boxstyle='round,pad=0.5'))  
-
-
-#%%
-
-ds=xr.open_dataset("/Volumes/waterisotopes/TROPOMI_HDO_CLEAR_p25.nc")
-ds.to_netcdf("/Users/catcoll/Documents/test_full.nc", "w","NETCDF4")
-delta=ds.deltad
-ds.variables.keys()
-delta=delta.transpose()
-delta=delta.transpose("lon","lat","time")
-delta.to_netcdf("/Users/catcoll/Documents/test1.nc", "w","NETCDF4")
-
-
-
-
-
+ax.set_extent([260,280,24,33])
 
 
 
